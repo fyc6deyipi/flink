@@ -5,11 +5,13 @@ import org.apache.flink.streaming.api.scala.{DataStream, StreamExecutionEnvironm
 import java.io.InputStream
 import java.util.Properties
 
-import com.fyc.dataStream.utils.confUtil
+
 import com.fyc.tools.kafkaUtils
 import org.apache.flink.api.common.serialization.SimpleStringSchema
 import org.apache.flink.api.java.utils.ParameterTool
-import org.apache.flink.streaming.connectors.kafka.FlinkKafkaConsumer010
+import org.apache.flink.streaming.api.functions.sink.RichSinkFunction
+import org.apache.flink.streaming.connectors.kafka.{FlinkKafkaConsumer010, FlinkKafkaProducer09}
+import org.apache.flink.util.Collector
 
 object app {
 
@@ -20,11 +22,12 @@ object app {
   def main(args: Array[String]): Unit = {
     println(kafkaUtils.getKafkaPropertise.getProperty("bootstrap.servers"))
     val stream: DataStream[String] = env.addSource(new FlinkKafkaConsumer010[String](
-      kafkaUtils.getTopicPropertise.getProperty("topic_test"),
+      kafkaUtils.getTopicPropertise.getProperty("topic_gtw"),
       new SimpleStringSchema(),
-      confUtil.getPropertise
+      kafkaUtils.getKafkaPropertise
     ))
-    stream.print()
+    val count: DataStream[(String, String, Int)] = stream.map(str => (str, "count", 1)).keyBy(1).sum(2)
+
     env.execute()
 
 
