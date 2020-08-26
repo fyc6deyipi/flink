@@ -4,7 +4,7 @@ import org.apache.flink.configuration.{ConfigConstants, Configuration}
 import org.apache.flink.streaming.api.scala.{DataStream, StreamExecutionEnvironment, createTypeInformation}
 import java.io.InputStream
 import java.util.Properties
-
+import org.apache.flink.streaming.api.windowing.time.Time
 import com.fyc.tools.{KAFKA_TOPICS, REDIS_KEYS, StrongJedisClient, kafkaUtils}
 import org.apache.flink.api.common.serialization.SimpleStringSchema
 import org.apache.flink.api.java.utils.ParameterTool
@@ -23,22 +23,35 @@ object app {
     configuration.setBoolean(ConfigConstants.LOCAL_START_WEBSERVER,true)
     val env: StreamExecutionEnvironment = StreamExecutionEnvironment.createLocalEnvironmentWithWebUI(configuration)
 
+    val propertise: Properties = kafkaUtils.getKafkaPropertise
     val stream: DataStream[String] = env.addSource(new FlinkKafkaConsumer010[String](
       kafkaUtils.getTopicPropertise.getProperty(topic_gtw),
       new SimpleStringSchema(),
-      kafkaUtils.getTopicPropertise
+      getPro
     ))
-    val count: DataStream[(String, String, Int)] = stream.map(str => (str, REDIS_GTW_COUNT, 1)).keyBy(1).sum(2)
-    count.addSink(new RichSinkFunction[(String, String, Int)] {
-      override def invoke(value: (String, String, Int)): Unit = {
-        val client: StrongJedisClient = StrongJedisClient.getInstance()
-        client.incrBy(REDIS_GTW_COUNT,value._3)
-      }
-    })
+//    val count: DataStream[(String, String, Int)] = stream.map(str => (str, REDIS_GTW_COUNT, 1)).keyBy(1)
+//      .timeWindow(Time.seconds(5)).sum(2)
+//    count.addSink(new RichSinkFunction[(String, String, Int)] {
+//      override def invoke(value: (String, String, Int)): Unit = {
+//        val client: StrongJedisClient = StrongJedisClient.getInstance()
+//        client.incrBy(REDIS_GTW_COUNT,value._3)
+//      }
+//    })
+    stream.print()
     env.execute()
 
 
 
+  }
+
+  def getPro={
+    val properties = new Properties()
+    properties.put("bootstrap.servers","81.70.54.74:9092")
+    properties.put("auto.offset.reset","earliest")
+//    properties.put("group.id","fyc")
+    properties.put("key.deserializer","org.apache.kafka.common.serialization.StringDeserializer")
+    properties.put("value.deserializer","org.apache.kafka.common.serialization.StringDeserializer")
+    properties
   }
 
 }
