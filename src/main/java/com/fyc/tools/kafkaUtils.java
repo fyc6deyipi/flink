@@ -41,7 +41,7 @@ public class kafkaUtils {
         return properties;
     }
     public static Properties getTopicPropertise(){
-        InputStream is = kafkaUtils.class.getClassLoader().getResourceAsStream("kafka.topic.properties");
+        InputStream is = kafkaUtils.class.getClassLoader().getResourceAsStream("kafka_topic.properties");
         properties= new Properties();
         try {
             properties.load(is);
