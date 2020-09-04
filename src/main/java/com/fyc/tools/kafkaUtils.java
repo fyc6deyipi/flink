@@ -16,6 +16,7 @@ public class kafkaUtils {
         try {
             properties.load(is);
             map.put("bootstrap.servers",properties.getProperty("bootstrap.servers"));
+            map.put("zookeeper.connect",properties.getProperty("zookeeper.connect"));
             map.put("group.id",properties.getProperty("group.id"));
             map.put("key.deserializer",properties.getProperty("key.deserializer"));
             map.put("value.deserializer",properties.getProperty("value.deserializer"));

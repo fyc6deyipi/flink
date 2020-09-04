@@ -4,12 +4,13 @@ import org.apache.flink.configuration.{ConfigConstants, Configuration}
 import org.apache.flink.streaming.api.scala.{DataStream, StreamExecutionEnvironment, createTypeInformation}
 import java.io.InputStream
 import java.util.Properties
+
 import org.apache.flink.streaming.api.windowing.time.Time
 import com.fyc.tools.{KAFKA_TOPICS, REDIS_KEYS, StrongJedisClient, kafkaUtils}
 import org.apache.flink.api.common.serialization.SimpleStringSchema
 import org.apache.flink.api.java.utils.ParameterTool
 import org.apache.flink.streaming.api.functions.sink.RichSinkFunction
-import org.apache.flink.streaming.connectors.kafka.{FlinkKafkaConsumer010, FlinkKafkaProducer09}
+import org.apache.flink.streaming.connectors.kafka.{FlinkKafkaConsumer010, FlinkKafkaConsumer011, FlinkKafkaConsumerBase, FlinkKafkaProducer09}
 import org.apache.flink.util.Collector
 
 object app {
@@ -22,16 +23,19 @@ object app {
     val configuration = new Configuration()
     configuration.setBoolean(ConfigConstants.LOCAL_START_WEBSERVER,true)
     val env: StreamExecutionEnvironment = StreamExecutionEnvironment.createLocalEnvironmentWithWebUI(configuration)
-
-    val stream: DataStream[String] = env.addSource(new FlinkKafkaConsumer010[String](
+    StrongJedisClient.getInstance().del(REDIS_GTW_COUNT)
+    val consumer = new FlinkKafkaConsumer011[String](
       topic_gtw,
       new SimpleStringSchema(),
-      getPro
-    ))
+      kafkaUtils.getKafkaPropertise
+    )
+    consumer.setStartFromEarliest()
+    val stream: DataStream[String] = env.addSource(consumer)
     val count: DataStream[(String, String, Int)] = stream.map(str => (str, REDIS_GTW_COUNT, 1)).keyBy(1)
       .timeWindow(Time.seconds(5)).sum(2)
     count.addSink(new RichSinkFunction[(String, String, Int)] {
       override def invoke(value: (String, String, Int)): Unit = {
+        println(value)
         val client: StrongJedisClient = StrongJedisClient.getInstance()
         client.incrBy(REDIS_GTW_COUNT,value._3)
       }
