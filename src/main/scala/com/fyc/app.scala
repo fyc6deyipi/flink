@@ -13,7 +13,7 @@ import org.apache.flink.streaming.api.functions.sink.RichSinkFunction
 import org.apache.flink.streaming.connectors.kafka.{FlinkKafkaConsumer010, FlinkKafkaConsumer011, FlinkKafkaConsumerBase, FlinkKafkaProducer09}
 import org.apache.flink.util.Collector
 
-//分支
+
 object app {
 
   private val REDIS_GTW_COUNT: String = REDIS_KEYS.REDIS_GTW_COUNT
