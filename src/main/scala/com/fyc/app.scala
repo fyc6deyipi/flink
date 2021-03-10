@@ -15,11 +15,8 @@ import org.apache.flink.util.Collector
 
 
 object app {
-
   private val REDIS_GTW_COUNT: String = REDIS_KEYS.REDIS_GTW_COUNT
   private val topic_gtw: String = KAFKA_TOPICS.topic_gtw
-
-
   def main(args: Array[String]): Unit = {
     val configuration = new Configuration()
     configuration.setBoolean(ConfigConstants.LOCAL_START_WEBSERVER,true)
@@ -42,11 +39,7 @@ object app {
       }
     })
     env.execute()
-
-
-
   }
-
   def getPro={
     val properties = new Properties()
     properties.put("bootstrap.servers","81.70.54.74:9092")
@@ -56,5 +49,4 @@ object app {
     properties.put("value.deserializer","org.apache.kafka.common.serialization.StringDeserializer")
     properties
   }
-
 }
